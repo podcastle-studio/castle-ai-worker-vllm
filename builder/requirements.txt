@@ -1,0 +1,11 @@
+ray
+pandas
+pyarrow
+runpod==1.6.2
+huggingface-hub
+packaging
+typing-extensions==4.7.1
+pydantic
+pydantic-settings
+hf-transfer
+vllm==0.3.3
