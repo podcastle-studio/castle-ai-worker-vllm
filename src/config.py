@@ -39,9 +39,11 @@ class EngineConfig:
             "disable_log_requests": bool(int(os.getenv("DISABLE_LOG_REQUESTS", 1))),
             "trust_remote_code": bool(int(os.getenv("TRUST_REMOTE_CODE", 0))),
             "gpu_memory_utilization": float(os.getenv("GPU_MEMORY_UTILIZATION", 0.95)),
-            "max_parallel_loading_workers": None if device_count() > 1 or not os.getenv("MAX_PARALLEL_LOADING_WORKERS") else int(os.getenv("MAX_PARALLEL_LOADING_WORKERS")),
+            # "max_parallel_loading_workers": None if device_count() > 1 or not os.getenv("MAX_PARALLEL_LOADING_WORKERS") else int(os.getenv("MAX_PARALLEL_LOADING_WORKERS")),
+            "max_parallel_loading_workers": 1,
             "max_model_len": int(os.getenv("MAX_MODEL_LEN")) if os.getenv("MAX_MODEL_LEN") else None,
-            "tensor_parallel_size": device_count(),
+            # "tensor_parallel_size": device_count(),
+            "tensor_parallel_size": 1,
             "seed": int(os.getenv("SEED")) if os.getenv("SEED") else None,
             "kv_cache_dtype": os.getenv("KV_CACHE_DTYPE"),
             "block_size": int(os.getenv("BLOCK_SIZE")) if os.getenv("BLOCK_SIZE") else None,
@@ -52,6 +54,7 @@ class EngineConfig:
             "enable_lora": True,
             "max_num_seqs": int(os.getenv("MAX_NUM_SEQS", 200)),
             "max_lora_rank": 16,
+            "device": 'cuda',
             # "enable_prefix_caching": True,  vllm 0.3.3 have not this option or it have different name
             # "scheduler_delay_factor": float(os.getenv("SCHEDULER_DELAY_FACTOR", 0.1)),
         }

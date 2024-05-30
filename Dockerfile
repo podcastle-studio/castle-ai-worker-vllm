@@ -16,7 +16,7 @@ ARG BASE_PATH="/runpod-volume"
 ARG QUANTIZATION=""
 ARG MODEL_REVISION=""
 ARG TOKENIZER_REVISION=""
-ARG MAX_NUM_SEQS=200
+ARG MAX_NUM_SEQS=50
 ARG SCHEDULER_DELAY_FACTOR=0.1
 ARG MAX_MODEL_LEN=512
 ENV MODEL_NAME=$MODEL_NAME \
@@ -31,9 +31,10 @@ ENV MODEL_NAME=$MODEL_NAME \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
     MAX_NUM_SEQS=$MAX_NUM_SEQS \
     SCHEDULER_DELAY_FACTOR=$SCHEDULER_DELAY_FACTOR \
-    MAX_MODEL_LEN=$MAX_MODEL_LEN
+    MAX_MODEL_LEN=$MAX_MODEL_LEN 
 ENV PYTHONPATH="/:/vllm-workspace"
 COPY src/download_model.py /download_model.py
+COPY test_input.json /test_input.json
 RUN --mount=type=secret,id=HF_TOKEN,required=false \
     if [ -f /run/secrets/HF_TOKEN ]; then \
         export HF_TOKEN=$(cat /run/secrets/HF_TOKEN); \
@@ -43,8 +44,9 @@ RUN --mount=type=secret,id=HF_TOKEN,required=false \
     fi
 # Add source files
 
+COPY lora_modules /lora_modules
 COPY src /src
 # Remove download_model.py
 RUN rm /download_model.py
 # Start the handler
-CMD ["python3", "/src/handler.py"]
+CMD ["python3", "/src/handler.py", "--rp_serve_api", "--rp_api_host", "0.0.0.0"]

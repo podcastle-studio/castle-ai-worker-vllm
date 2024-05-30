@@ -1,0 +1,16 @@
+{
+    "input": {
+        "openai_input": {
+            "model": "filler",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "[INST]Given the text and candidate words/phrases from that sentence, your task is to identify which words/phrases are filler.\nReturn a json object with the following format:\n{\n  'prediction': [\n    {\n      'word': '<candidate>',\n      'type': '<target>'\n    },\n    {\n      'word': '<candidate>',\n      'type': '<target>'\n    }\n  ]\n}\nText: As the airship swings back around and begins to hover over your location, three ropes drop down as, uh, well as a little basket that you'll be able to put the it's not that little that you'll be able to put the carrier, um, in.| Candidates: well.[/INST]\n"    
+                }
+            ]
+        },
+        "openai_route": "/v1/chat/completions",
+        "use_openai_format": true
+    },
+    "webhook": "string"
+}

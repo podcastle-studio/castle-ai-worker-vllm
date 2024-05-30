@@ -12,6 +12,7 @@ from vllm.entrypoints.openai.serving_chat import OpenAIServingChat
 from vllm.entrypoints.openai.serving_completion import OpenAIServingCompletion
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, CompletionRequest, ErrorResponse
 from vllm.lora.request import LoRARequest
+from vllm.entrypoints.openai.serving_engine import LoRA
 
 from utils import DummyRequest, JobInput, BatchSize, create_error_response
 from constants import DEFAULT_MAX_CONCURRENCY, DEFAULT_BATCH_SIZE, DEFAULT_BATCH_SIZE_GROWTH_FACTOR, DEFAULT_MIN_BATCH_SIZE
@@ -28,7 +29,9 @@ class vLLMEngine:
         self.default_batch_size = int(os.getenv("DEFAULT_BATCH_SIZE", DEFAULT_BATCH_SIZE))
         self.batch_size_growth_factor = int(os.getenv("BATCH_SIZE_GROWTH_FACTOR", DEFAULT_BATCH_SIZE_GROWTH_FACTOR))
         self.min_batch_size = int(os.getenv("MIN_BATCH_SIZE", DEFAULT_MIN_BATCH_SIZE))
-        self.filler_lora_request = LoRARequest("filler", 1, os.getenv("LORA_MODULES", "./lora_modules"))
+        self.lora_list = [LoRA("filler", os.getenv("LORA_MODULES", "../lora_modules"))]
+        self.filler_lora_request = LoRARequest("filler", 1, os.getenv("LORA_MODULES", "../lora_modules"))
+
 
     def dynamic_batch_size(self, current_batch_size, batch_size_growth_factor):
         return min(current_batch_size*batch_size_growth_factor, self.default_batch_size)
@@ -120,6 +123,7 @@ class OpenAIvLLMEngine:
     def __init__(self, vllm_engine):
         self.config = vllm_engine.config
         self.llm = vllm_engine.llm
+        self.lora_list = vllm_engine.lora_list
         self.served_model_name = os.getenv("OPENAI_SERVED_MODEL_NAME_OVERRIDE") or self.config["model"]
         self.response_role = os.getenv("OPENAI_RESPONSE_ROLE") or "assistant"
         self.tokenizer = vllm_engine.tokenizer
@@ -131,9 +135,14 @@ class OpenAIvLLMEngine:
     def _initialize_engines(self):
         self.chat_engine = OpenAIServingChat(
             self.llm, self.served_model_name, self.response_role,
-            chat_template=self.tokenizer.tokenizer.chat_template
+            chat_template=self.tokenizer.tokenizer.chat_template,
+            lora_modules=self.lora_list
         )
-        self.completion_engine = OpenAIServingCompletion(self.llm, self.served_model_name)
+        self.completion_engine = OpenAIServingCompletion(
+            self.llm,
+            self.served_model_name,
+            lora_modules=self.lora_list
+        )
     
     async def generate(self, openai_request: JobInput):
         if openai_request.openai_route == "/v1/models":
